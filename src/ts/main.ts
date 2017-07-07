@@ -6,36 +6,25 @@ let game
 
 let bootState = {
     preload: function(){
+        game.stage.backgroundColor = '#f06292'
+
         game.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL
         game.scale.fullScreenScaleMode = Phaser.ScaleManager.SHOW_ALL
         game.scale.pageAlignHorizontally = true
         game.scale.pageAlignVertically = true
 
-        game.load.image('test_screen', 'assets/images/test_screen.png')
-        game.load.bitmapFont('zorque-32px-white', 'assets/images/zorque-32px-white.png', 'assets/images/zorque-32px-white.xml')
-        game.load.bitmapFont('zorque-32px-pink', 'assets/images/zorque-32px-pink.png', 'assets/images/zorque-32px-pink.xml')
-        game.load.image('test_button', 'assets/images/test_button.png')
+        game.load.image('loader_bg', 'assets/images/loader_bg.png')
+        game.load.image('loader_br', 'assets/images/loader_br.png')
     },
     create: function(){
-        let bg = game.add.sprite(0, 0, 'test_screen')
-        bg.anchor.setTo(.5)
-        bg.x = game.width/2
-        bg.y = game.height/2
-        game.add.bitmapText(100, 140, 'zorque-32px-white',`${game.width}x${game.height}`, 32);
-        game.add.bitmapText(100, 180, 'zorque-32px-white','Bitmap Fonts!', 18);
-        game.add.bitmapText(100, 260, 'zorque-32px-pink','Bitmap Fonts!', 32);
-        game.add.bitmapText(100, 300, 'zorque-32px-pink','Bitmap Fonts!', 18);
-
-        game.add.button(100, 400, 'test_button', function(){
-            game.scale.startFullScreen()
-        })
+        game.state.start('loader')
     }
 }
 
 window.onload = () => {
     if (screen.orientation)
         screen.orientation.lock('portrait')
-        
+
     let width = GAME_WIDTH
     let height
     let ratio = window.innerWidth/width
@@ -53,6 +42,7 @@ window.onload = () => {
     game.state.add('boot', bootState)
     game.state.add('loader', loaderState)
     game.state.add('game', gameState)
+    game.state.add('fsPrompt', fsPromptState)
 
     game.state.start('boot')
 }
