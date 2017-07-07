@@ -1,0 +1,25 @@
+{
+  "name": "base-gulp-html5-app",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vuanhhaogk/base-gulp-html5-app.git"
+  },
+  "author": "Vu Anh Hao <vuanhhaogk@gmail.com> (https://vuanhhaogk.github.io)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/vuanhhaogk/base-gulp-html5-app/issues"
+  },
+  "homepage": "https://github.com/vuanhhaogk/base-gulp-html5-app#readme",
+  "devDependencies": {
+    "browser-sync": "^2.18.12",
+    "gulp": "^3.9.1",
+    "gulp-typescript": "^3.1.7",
+    "typescript": "^2.4.1"
+  }
+}
