@@ -12,6 +12,6 @@ var loaderState = {
         game.load.image('white_button_bg', 'assets/images/white_button_bg.png');
     },
     create: function () {
-        game.state.start('fsPrompt');
+        game.state.start('menu');
     }
 };

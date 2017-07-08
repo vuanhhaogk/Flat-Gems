@@ -33,7 +33,7 @@ window.onload = () => {
         if (screen_height >= MIN_GAME_HEIGHT){
             height = screen_height
         } else
-            height = MAX_GAME_HEIGHT
+            height = MIN_GAME_HEIGHT
     } else
         height = MAX_GAME_HEIGHT
 
@@ -41,8 +41,8 @@ window.onload = () => {
 
     game.state.add('boot', bootState)
     game.state.add('loader', loaderState)
+    game.state.add('menu', menuState)
     game.state.add('game', gameState)
-    game.state.add('fsPrompt', fsPromptState)
 
     game.state.start('boot')
 }
