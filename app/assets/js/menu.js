@@ -47,6 +47,7 @@ var menuState = {
         }
     },
     newgame: function () {
+        game.state.start('game');
     },
     "continue": function () {
     },

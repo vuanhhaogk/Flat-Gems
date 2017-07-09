@@ -56,7 +56,7 @@ let menuState = {
         }
     },
     newgame: function(){
-
+        game.state.start('game')
     },
     continue: function(){
 
