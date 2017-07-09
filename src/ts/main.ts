@@ -37,7 +37,7 @@ window.onload = () => {
     } else
         height = MAX_GAME_HEIGHT
 
-    game = new Phaser.Game(width, height, Phaser.AUTO, '', null, false, false)
+    game = new Phaser.Game(width, height, Phaser.AUTO, '')
 
     game.state.add('boot', bootState)
     game.state.add('loader', loaderState)
