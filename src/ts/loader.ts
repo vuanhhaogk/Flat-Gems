@@ -12,8 +12,22 @@ let loaderState = {
         game.load.bitmapFont('zorque_32px_white', 'assets/images/zorque_32px_white.png', 'assets/images/zorque_32px_white.xml')
         game.load.bitmapFont('zorque_32px_pink', 'assets/images/zorque_32px_pink.png', 'assets/images/zorque_32px_pink.xml')
 
-        game.load.image('prompt_bg', 'assets/images/prompt_bg.png')
-        game.load.image('white_button_bg', 'assets/images/white_button_bg.png')
+        game.load.image('title', 'assets/images/title.png')
+
+        game.load.image('menu_newgame', 'assets/images/menu_newgame.png')
+        game.load.image('menu_continue', 'assets/images/menu_continue.png')
+        game.load.image('menu_help', 'assets/images/menu_help.png')
+        game.load.image('menu_button', 'assets/images/menu_button.png')
+        game.load.image('replay_button', 'assets/images/replay_button.png')
+        game.load.spritesheet('pp_button', 'assets/images/play_pause_button.png', 36, 36)
+
+        game.load.image('red_gem', 'assets/images/red_gem.png')
+        game.load.image('blue_gem', 'assets/images/blue_gem.png')
+        game.load.image('green_gem', 'assets/images/green_gem.png')
+        game.load.image('orange_gem', 'assets/images/orange_gem.png')
+        game.load.image('yellow_gem', 'assets/images/yellow_gem.png')
+
+        game.load.image('game_bg', 'assets/images/game_bg.png')
     },
     create: function(){
         game.state.start('menu')

@@ -32,7 +32,7 @@ window.onload = function () {
     }
     else
         height = MAX_GAME_HEIGHT;
-    game = new Phaser.Game(width, height);
+    game = new Phaser.Game(width, height, Phaser.AUTO, '', null, false, false);
     game.state.add('boot', bootState);
     game.state.add('loader', loaderState);
     game.state.add('menu', menuState);
