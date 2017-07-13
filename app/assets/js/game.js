@@ -14,7 +14,7 @@ var gameState = {
         var pp_button = game.add.button(game.width / 2, 0, 'pp_button');
         pp_button.anchor.setTo(.5);
         tools.add(pp_button);
-        var replay_button = game.add.button(game.width / 4 * 3, 0, 'replay_button');
+        var replay_button = game.add.button(game.width / 4 * 3, 0, 'replay_button', this.replay, this);
         replay_button.anchor.setTo(.5);
         tools.add(replay_button);
         var info = game.add.group();
@@ -53,6 +53,7 @@ var gameState = {
                 gems.add(gem);
             }
         }
+        this.grid_width = GRID_SIZE;
     },
     searchGem: function (row, col) {
         var gem = this.grid[row][col];
@@ -91,6 +92,8 @@ var gameState = {
         return rel;
     },
     selectGem: function (gem) {
+        if (this.moving)
+            return;
         // search gem
         var gr = this.searchGem(gem.row, gem.col);
         if (gr.length < 0)
@@ -104,19 +107,20 @@ var gameState = {
         }
         // collapse gem vertical
         for (var i = GRID_SIZE - 1; i > 0; i--) {
-            for (var j = 0; j < GRID_SIZE; j++) {
-                if (this.grid[i][j] == null) {
+            for (var j_1 = 0; j_1 < GRID_SIZE; j_1++) {
+                if (this.grid[i][j_1] == null) {
                     var k = i;
-                    while (k > 0 && this.grid[k - 1][j] == null)
+                    while (k > 0 && this.grid[k - 1][j_1] == null)
                         k--;
                     if (k == 0)
                         continue;
-                    this.moveGem(k - 1, j, i, j);
+                    this.moveGem(k - 1, j_1, i, j_1);
                 }
             }
         }
         // collapse gem horizontal
-        for (var j = 0; j < GRID_SIZE; j++) {
+        var j = 0;
+        while (j < this.grid_width) {
             var check = true;
             for (var i = 0; i < GRID_SIZE; i++)
                 if (this.grid[i][j] !== null) {
@@ -124,29 +128,41 @@ var gameState = {
                     break;
                 }
             if (check) {
-                for (var i = 0; i < GRID_SIZE; i++) {
-                    var k = j;
-                    while (k < GRID_SIZE - 1 && this.grid[i][k + 1] == null)
-                        k++;
-                    if (k == GRID_SIZE - 1)
-                        continue;
-                    this.moveGem(i, k + 1, i, j);
+                for (var fr = 0; fr < GRID_SIZE; fr++) {
+                    for (var fc = j + 1; fc < this.grid_width; fc++) {
+                        this.moveGem(fr, fc, fr, fc - 1);
+                    }
                 }
+                this.grid_width--;
+            }
+            else {
+                j++;
             }
         }
     },
     moveGem: function (fr, fc, tr, tc) {
+        var _this = this;
+        if (!this.grid[fr][fc])
+            return;
         this.grid[tr][tc] = this.grid[fr][fc];
         this.grid[fr][fc] = null;
-        this.grid[tr][tc].row = tr;
-        this.grid[tr][tc].col = tc;
-        this.grid[tr][tc].y = tr * (GEM_SIZE + GEM_PADDING);
-        this.grid[tr][tc].x = tc * (GEM_SIZE + GEM_PADDING);
+        var item = this.grid[tr][tc];
+        item.row = tr;
+        item.col = tc;
+        if (!this.moving)
+            this.moving = setTimeout(function () {
+                _this.moving = null;
+            }, 300);
+        var length = Math.sqrt(Math.pow(fr - tr, 2) + Math.pow(fc - tc, 2));
+        game.add.tween(item).to({ x: tc * (GEM_SIZE + GEM_PADDING), y: tr * (GEM_SIZE + GEM_PADDING) }, 300, Phaser.Easing.Linear.None, true);
     },
     update: function () {
         this.time_br.updateCrop();
     },
     menu: function () {
         game.state.start('menu');
+    },
+    replay: function () {
+        game.state.start('game');
     }
 };

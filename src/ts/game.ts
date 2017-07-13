@@ -20,7 +20,7 @@ let gameState = {
         pp_button.anchor.setTo(.5)
         tools.add(pp_button)
 
-        let replay_button = game.add.button(game.width/4 * 3, 0, 'replay_button')
+        let replay_button = game.add.button(game.width/4 * 3, 0, 'replay_button', this.replay, this)
         replay_button.anchor.setTo(.5)
         tools.add(replay_button)
 
@@ -67,6 +67,7 @@ let gameState = {
             }
         }
 
+        this.grid_width = GRID_SIZE
     },
     searchGem: function(row, col){
         let gem = this.grid[row][col]
@@ -111,9 +112,11 @@ let gameState = {
         return rel
     },
     selectGem: function(gem){
+        if (this.moving)
+            return
         // search gem
         let gr = this.searchGem(gem.row, gem.col)
-        if (gr.length < 0)
+        if (gr.length < 0) // default is 3
             return
 
         // remove gem
@@ -137,7 +140,8 @@ let gameState = {
         }
 
         // collapse gem horizontal
-        for (let j = 0; j < GRID_SIZE; j++){
+        let j = 0
+        while (j < this.grid_width){
             let check = true
             for (let i = 0; i < GRID_SIZE; i++)
                 if (this.grid[i][j] !== null){
@@ -145,28 +149,40 @@ let gameState = {
                     break
                 }
             if (check){
-                for (let i = 0; i < GRID_SIZE; i++){
-                    let k = j
-                    while (k < GRID_SIZE - 1 && this.grid[i][k + 1] == null) k++
-                    if (k == GRID_SIZE - 1)
-                        continue
-                    this.moveGem(i, k + 1, i, j)
+                for (let fr = 0; fr < GRID_SIZE; fr++){
+                    for (let fc = j + 1; fc < this.grid_width; fc++){
+                        this.moveGem(fr, fc, fr, fc - 1)
+                    }
                 }
+                this.grid_width--
+            } else {
+                j++
             }
         }
     },
     moveGem: function(fr, fc, tr, tc){
+        if (!this.grid[fr][fc])
+            return
         this.grid[tr][tc] = this.grid[fr][fc]
         this.grid[fr][fc] = null
-        this.grid[tr][tc].row = tr
-        this.grid[tr][tc].col = tc
-        this.grid[tr][tc].y = tr * (GEM_SIZE + GEM_PADDING)
-        this.grid[tr][tc].x = tc * (GEM_SIZE + GEM_PADDING)
+        let item = this.grid[tr][tc]
+        item.row = tr
+        item.col = tc
+        if (!this.moving)
+            this.moving = setTimeout(() => {
+                this.moving = null
+            }, 300)
+
+        let length = Math.sqrt(Math.pow(fr - tr, 2) + Math.pow(fc - tc, 2))
+        game.add.tween(item).to({x: tc * (GEM_SIZE + GEM_PADDING), y: tr * (GEM_SIZE + GEM_PADDING)}, 300, Phaser.Easing.Linear.None, true)
     },
     update: function(){
         this.time_br.updateCrop()
     },
     menu: function(){
         game.state.start('menu')
+    },
+    replay: function(){
+        game.state.start('game')
     }
 }
