@@ -40,6 +40,7 @@ var gameState = {
         var gems = game.add.group();
         gems.x = padding_lr + (game_bg.width - GRID_SIZE * (GEM_SIZE + GEM_PADDING)) / 2;
         gems.y = padding_tb + (game_bg.height - GRID_SIZE * (GEM_SIZE + GEM_PADDING)) / 2;
+        this.gems = gems;
         this.grid = [];
         for (var i = 0; i < GRID_SIZE; i++) {
             this.grid[i] = [];
@@ -120,6 +121,7 @@ var gameState = {
         }
         // collapse gem horizontal
         var j = 0;
+        var old_grid_width = this.grid_width;
         while (j < this.grid_width) {
             var check = true;
             for (var i = 0; i < GRID_SIZE; i++)
@@ -138,6 +140,10 @@ var gameState = {
             else {
                 j++;
             }
+        }
+        if (old_grid_width !== this.grid_width) {
+            var next_pivot_x = this.gems.pivot.x - (old_grid_width - this.grid_width) * (GEM_SIZE + GEM_PADDING) / 2;
+            game.add.tween(this.gems.pivot).to({ x: next_pivot_x }, 300, Phaser.Easing.Linear.None, true);
         }
     },
     moveGem: function (fr, fc, tr, tc) {
