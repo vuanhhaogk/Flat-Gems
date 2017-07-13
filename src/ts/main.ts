@@ -1,6 +1,10 @@
 const MAX_GAME_HEIGHT = 1280
 const MIN_GAME_HEIGHT = 960
 const GAME_WIDTH = 720
+const FONT_SIZE = 36
+const GEM_PADDING = 2
+const GEM_SIZE = 60
+const GRID_SIZE = 10
 
 let game
 

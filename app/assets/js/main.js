@@ -1,6 +1,10 @@
 var MAX_GAME_HEIGHT = 1280;
 var MIN_GAME_HEIGHT = 960;
 var GAME_WIDTH = 720;
+var FONT_SIZE = 36;
+var GEM_PADDING = 2;
+var GEM_SIZE = 60;
+var GRID_SIZE = 10;
 var game;
 var bootState = {
     preload: function () {
