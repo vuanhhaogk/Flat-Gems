@@ -3,7 +3,6 @@ let menuState = {
 
     },
     create: function(){
-        let gem_group = game.add.group()
 
         let title = game.add.sprite(game.width/2, game.height/3, 'title')
         title.anchor.setTo(.5)
@@ -42,18 +41,6 @@ let menuState = {
         }
 
         game.add.tween(menu_help).to({x: 0, alpha: 1}, 300, Phaser.Easing.Linear.None, true)
-
-        // random grem
-        let gems = ['red_gem', 'yellow_gem', 'blue_gem', 'orange_gem', 'green_gem']
-        let num = 30
-        for (let i = 0; i < num; i++){
-            let gem = game.add.sprite(Math.random() * (game.width + 72) - 36, Math.random() * (game.height + 72) - 36, gems[Math.floor(Math.random() * gems.length)])
-            gem.anchor.setTo(0.5)
-            gem.angle = Math.random() * 360
-            gem.scale.setTo(Math.random() * 4 + 0.3)
-            gem.alpha = Math.random() * 0.5 + 0.3
-            gem_group.add(gem)
-        }
     },
     newgame: function(){
         game.state.start('game')

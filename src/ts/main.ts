@@ -1,6 +1,6 @@
-const MAX_GAME_HEIGHT = 640
-const MIN_GAME_HEIGHT = 480
-const GAME_WIDTH = 360
+const MAX_GAME_HEIGHT = 1280
+const MIN_GAME_HEIGHT = 960
+const GAME_WIDTH = 720
 
 let game
 
@@ -25,6 +25,8 @@ window.onload = () => {
     if (screen.orientation)
         screen.orientation.lock('portrait')
 
+    let md = new MobileDetect(window.navigator.userAgent)
+
     let width = GAME_WIDTH
     let height
     let ratio = window.innerWidth/width
@@ -32,8 +34,12 @@ window.onload = () => {
     if (screen_height <= MAX_GAME_HEIGHT){
         if (screen_height >= MIN_GAME_HEIGHT){
             height = screen_height
-        } else
-            height = MIN_GAME_HEIGHT
+        } else {
+            if (!md.mobile() && !md.tablet())
+                height = MAX_GAME_HEIGHT
+            else
+                height = MIN_GAME_HEIGHT
+        }
     } else
         height = MAX_GAME_HEIGHT
 

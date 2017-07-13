@@ -16,8 +16,8 @@ var gameState = {
         tools.add(replay_button);
         var info = game.add.group();
         info.y = game.height / 9;
-        info.add(game.add.bitmapText(24, -18, 'zorque_32px_white', 'Score', 18));
-        info.add(game.add.bitmapText(24, 18, 'zorque_32px_white', 'Time', 18));
+        info.add(game.add.bitmapText(24, -18, 'zorque', 'Score', 36));
+        info.add(game.add.bitmapText(24, 18, 'zorque', 'Time', 36));
         var time_bg = game.add.sprite(game.width - 24, 18, 'loader_bg');
         time_bg.anchor.setTo(1, 0);
         info.add(time_bg);
@@ -27,7 +27,7 @@ var gameState = {
         var time_crop = new Phaser.Rectangle(0, 0, this.time_br.width, this.time_br.height);
         var tw = game.add.tween(time_crop).to({ x: this.time_br.width }, 10000, Phaser.Easing.Linear.None, true);
         this.time_br.crop(time_crop);
-        var score_text = game.add.bitmapText(game.width - 24, -18, 'zorque_32px_white', '0', 18);
+        var score_text = game.add.bitmapText(game.width - 24, -18, 'zorque', '0', 36);
         score_text.anchor.setTo(1, 0);
         info.add(score_text);
     },

@@ -1,6 +1,6 @@
-var MAX_GAME_HEIGHT = 640;
-var MIN_GAME_HEIGHT = 480;
-var GAME_WIDTH = 360;
+var MAX_GAME_HEIGHT = 1280;
+var MIN_GAME_HEIGHT = 960;
+var GAME_WIDTH = 720;
 var game;
 var bootState = {
     preload: function () {
@@ -19,6 +19,7 @@ var bootState = {
 window.onload = function () {
     if (screen.orientation)
         screen.orientation.lock('portrait');
+    var md = new MobileDetect(window.navigator.userAgent);
     var width = GAME_WIDTH;
     var height;
     var ratio = window.innerWidth / width;
@@ -27,8 +28,12 @@ window.onload = function () {
         if (screen_height >= MIN_GAME_HEIGHT) {
             height = screen_height;
         }
-        else
-            height = MIN_GAME_HEIGHT;
+        else {
+            if (!md.mobile() && !md.tablet())
+                height = MAX_GAME_HEIGHT;
+            else
+                height = MIN_GAME_HEIGHT;
+        }
     }
     else
         height = MAX_GAME_HEIGHT;
