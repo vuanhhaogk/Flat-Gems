@@ -27,6 +27,7 @@ let loaderState = {
         game.load.image('yellow_gem', 'assets/images/yellow_gem.png')
 
         game.load.image('game_bg', 'assets/images/game_bg.png')
+        game.load.image('menu_bg', 'assets/images/menu_bg.png')
     },
     create: function(){
         game.state.start('menu')

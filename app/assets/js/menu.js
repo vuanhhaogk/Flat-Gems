@@ -2,6 +2,7 @@ var menuState = {
     preload: function () {
     },
     create: function () {
+        game.add.sprite(0, 0, 'menu_bg');
         var title = game.add.sprite(game.width / 2, game.height / 3, 'title');
         title.anchor.setTo(.5);
         title.scale.setTo(1, 0);
