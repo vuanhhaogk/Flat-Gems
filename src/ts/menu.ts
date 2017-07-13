@@ -22,22 +22,22 @@ let menuState = {
         menu_newgame.alpha = 0
         game.add.tween(menu_newgame).to({x: 0, alpha: 1}, 300, Phaser.Easing.Linear.None, true)
 
-        let menu_help = game.add.button(0, 36, 'menu_help', this.help, this)
+        let menu_help = game.add.button(0, 60, 'menu_help', this.help, this)
         menu_help.anchor.setTo(.5)
         menu.add(menu_help)
-        menu_help.x = 100
+        menu_help.x = game.width/4
         menu_help.alpha = 0
 
         if (localStorage.getItem('plat_gem_continue_data')){
-            let menu_continue = game.add.button(0, 36, 'menu_continue', this.continue, this)
+            let menu_continue = game.add.button(0, 60, 'menu_continue', this.continue, this)
             menu_continue.anchor.setTo(.5)
             menu.add(menu_continue)
-            menu_continue.x = 100
+            menu_continue.x = game.width/4
             menu_continue.alpha = 0
             game.add.tween(menu_continue).to({x: 0, alpha: 1}, 300, Phaser.Easing.Linear.None, true)
 
-            menu_help.y = 72
-            menu_help.x = -100
+            menu_help.y = 120
+            menu_help.x = -game.width/4
         }
 
         game.add.tween(menu_help).to({x: 0, alpha: 1}, 300, Phaser.Easing.Linear.None, true)
