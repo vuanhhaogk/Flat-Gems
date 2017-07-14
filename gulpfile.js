@@ -18,6 +18,13 @@ gulp.task('build-typescript', () => {
     .pipe(gulp.dest('app/assets/js'))
 })
 
+gulp.task('build-rule', () => {
+    return gulp.src('src/ts/rule.ts')
+    .pipe(ts())
+    .pipe(gulp.dest('server'))
+})
+
 gulp.task('watch', ['browserSync'], () => {
     gulp.watch('src/ts/*.ts', ['build-typescript'])
+    gulp.watch('src/ts/rule.ts', ['build-rule'])
 })
