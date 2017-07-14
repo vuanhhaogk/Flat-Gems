@@ -3,12 +3,14 @@ let gameState = {
 
     },
     create: function(){
+        //  game size
         let game_bg = game.add.sprite(game.width/2, game.height/2, 'game_bg')
         game_bg.anchor.setTo(.5)
 
         let padding_lr = (game.width - game_bg.width)/2
         let padding_tb = (game.height - game_bg.height)/2
 
+        // tool
         let tools = game.add.group()
         tools.y = padding_tb/2 * 3 + game_bg.height
 
@@ -24,6 +26,7 @@ let gameState = {
         replay_button.anchor.setTo(.5)
         tools.add(replay_button)
 
+        //  info
         let info = game.add.group()
         info.y = padding_tb/2 - FONT_SIZE/4 * 3
 
@@ -39,12 +42,14 @@ let gameState = {
         this.time_br.anchor.setTo(1, 0)
         info.add(this.time_br)
         let time_crop = new Phaser.Rectangle(0, 0, this.time_br.width, this.time_br.height)
-        let tw = game.add.tween(time_crop).to({x: this.time_br.width}, 10000, Phaser.Easing.Linear.None, true)
+        let tw = game.add.tween(time_crop)
+        tw.to({x: this.time_br.width}, 100000, Phaser.Easing.Linear.None, true)
         this.time_br.crop(time_crop)
 
-        let score_text = game.add.bitmapText(padding_lr + game_bg.width, -FONT_SIZE, 'zorque', '0', 36)
-        score_text.anchor.setTo(1, 0)
-        info.add(score_text)
+        this.score_text = game.add.bitmapText(padding_lr + game_bg.width, -FONT_SIZE, 'zorque', '0', 36)
+        this.score_text.anchor.setTo(1, 0)
+        this.score = 0
+        info.add(this.score_text)
 
         // gems
         let list = ['red', 'green', 'blue', 'yellow', 'orange']
@@ -59,7 +64,9 @@ let gameState = {
             this.grid[i] = []
             for (let j = 0; j < GRID_SIZE; j++){
                 let type = list[Math.floor(Math.random() * list.length)]
-                let gem = game.add.button(j * (GEM_SIZE + GEM_PADDING), i * (GEM_SIZE + GEM_PADDING), `${type}_gem`, this.selectGem, this)
+                let pos = this.getGemPos(i, j)
+                let gem = game.add.button(pos.x, pos.y, `${type}_gem`, this.selectGem, this)
+                gem.anchor.setTo(.5)
                 gem.row = i
                 gem.col = j
                 gem.gem_type = type
@@ -69,6 +76,12 @@ let gameState = {
         }
 
         this.grid_width = GRID_SIZE
+    },
+    getGemPos: function(row, col){
+        return {
+            x: col * (GEM_SIZE + GEM_PADDING) + GEM_SIZE/2,
+            y: row * (GEM_SIZE + GEM_PADDING) + GEM_SIZE/2
+        }
     },
     searchGem: function(row, col){
         let gem = this.grid[row][col]
@@ -121,13 +134,21 @@ let gameState = {
             return
 
         // remove gem
+        this.score += Math.pow(gr.length, 2)
+        this.score_text.text = this.score
         for (let {row, col} of gr){
             let item = this.grid[row][col]
             this.grid[row][col] = null
-            item.kill()
+            let tw = game.add.tween(item)
+            tw.to({alpha: 0}, 100, Phaser.Easing.Linear.None)
+            tw.onComplete.add(() => item.kill())
+            tw.start()
+            game.add.tween(item.scale).to({x: 0, y: 0}, 100, Phaser.Easing.Linear.None, true)
         }
 
         // collapse gem vertical
+        let best_time = 0
+        this.moving = true
         for (let i = GRID_SIZE - 1; i > 0; i--){
             for (let j = 0; j < GRID_SIZE; j++){
                 if (this.grid[i][j] == null){
@@ -135,7 +156,9 @@ let gameState = {
                     while (k > 0 && this.grid[k - 1][j] == null) k--
                     if (k == 0)
                         continue
-                    this.moveGem(k - 1, j, i, j)
+                    let time = this.moveGem(k - 1, j, i, j)
+                    if (time > best_time)
+                        best_time = time
                 }
             }
         }
@@ -153,7 +176,9 @@ let gameState = {
             if (check){
                 for (let fr = 0; fr < GRID_SIZE; fr++){
                     for (let fc = j + 1; fc < this.grid_width; fc++){
-                        this.moveGem(fr, fc, fr, fc - 1)
+                        let time = this.moveGem(fr, fc, fr, fc - 1)
+                        if (time > best_time)
+                            best_time = time
                     }
                 }
                 this.grid_width--
@@ -161,26 +186,31 @@ let gameState = {
                 j++
             }
         }
+
+        // center grid gem
+        if (best_time < 100)
+            best_time = 100
         if (old_grid_width !== this.grid_width){
             let next_pivot_x = this.gems.pivot.x - (old_grid_width - this.grid_width) * (GEM_SIZE + GEM_PADDING)/2
-            game.add.tween(this.gems.pivot).to({x: next_pivot_x}, 300, Phaser.Easing.Linear.None, true)
+            game.add.tween(this.gems.pivot).to({x: next_pivot_x}, 100, Phaser.Easing.Linear.None, true)
         }
+        setTimeout(() => {
+            this.moving = false
+        }, best_time)
     },
     moveGem: function(fr, fc, tr, tc){
         if (!this.grid[fr][fc])
-            return
+            return 0
         this.grid[tr][tc] = this.grid[fr][fc]
         this.grid[fr][fc] = null
         let item = this.grid[tr][tc]
         item.row = tr
         item.col = tc
-        if (!this.moving)
-            this.moving = setTimeout(() => {
-                this.moving = null
-            }, 300)
 
         let length = Math.sqrt(Math.pow(fr - tr, 2) + Math.pow(fc - tc, 2))
-        game.add.tween(item).to({x: tc * (GEM_SIZE + GEM_PADDING), y: tr * (GEM_SIZE + GEM_PADDING)}, 300, Phaser.Easing.Linear.None, true)
+        let pos = this.getGemPos(tr, tc)
+        game.add.tween(item).to(pos, 100 * length, Phaser.Easing.Linear.None, true)
+        return length * 100
     },
     update: function(){
         this.time_br.updateCrop()
