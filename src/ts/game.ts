@@ -106,25 +106,21 @@ let gameState = {
         if (this.moving)
             return
 
-        this.moving = true
-
         // search gem
         let ls = this.grid.detect(gem.r, gem.c)
         if (ls.length < 3) // default is 3
             return
 
+        this.moving = true
+
         // remove gem
         this.updateScore(ls.length)
-
+        this.grid.kill(ls)
         for (let j = 0; j < ls.length; j++)
             this.removeGem(this.searchGem(ls[j].r, ls[j].c))
 
-        // kill gem
-        this.grid.kill(ls)
-
         // update gem
         let moves = this.grid.update()
-        console.log(ls, moves)
         let ltime = 100
         for (let i = 0; i < moves.length; i++){
             let time = this.moveGem(moves[i].fr, moves[i].fc, moves[i].tr, moves[i].tc)
@@ -163,11 +159,10 @@ let gameState = {
         return length * 100
     },
     removeGem: function(gem){
-        console.log(gem)
         game.add.tween(gem).to({alpha: 0}, 100, Phaser.Easing.Linear.None, true)
         game.add.tween(gem.scale).to({x: 0, y: 0}, 100, Phaser.Easing.Linear.None, true)
         setTimeout(() => {
-            gem.kill()
+            gem.destroy()
         }, 100)
     },
     update: function(){

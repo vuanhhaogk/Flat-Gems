@@ -93,20 +93,18 @@ var gameState = {
         var _this = this;
         if (this.moving)
             return;
-        this.moving = true;
         // search gem
         var ls = this.grid.detect(gem.r, gem.c);
         if (ls.length < 3)
             return;
+        this.moving = true;
         // remove gem
         this.updateScore(ls.length);
+        this.grid.kill(ls);
         for (var j = 0; j < ls.length; j++)
             this.removeGem(this.searchGem(ls[j].r, ls[j].c));
-        // kill gem
-        this.grid.kill(ls);
         // update gem
         var moves = this.grid.update();
-        console.log(ls, moves);
         var ltime = 100;
         for (var i = 0; i < moves.length; i++) {
             var time = this.moveGem(moves[i].fr, moves[i].fc, moves[i].tr, moves[i].tc);
@@ -143,11 +141,10 @@ var gameState = {
         return length * 100;
     },
     removeGem: function (gem) {
-        console.log(gem);
         game.add.tween(gem).to({ alpha: 0 }, 100, Phaser.Easing.Linear.None, true);
         game.add.tween(gem.scale).to({ x: 0, y: 0 }, 100, Phaser.Easing.Linear.None, true);
         setTimeout(function () {
-            gem.kill();
+            gem.destroy();
         }, 100);
     },
     update: function () {
