@@ -29,7 +29,7 @@ let menuState = {
         menu_help.x = game.width/4
         menu_help.alpha = 0
 
-        if (localStorage.getItem('plat_gem_continue_data')){
+        if (localStorage.getItem('plat_gems.current_level')){
             let menu_continue = game.add.button(0, FONT_SIZE * 2, 'menu_continue', this.continue, this)
             menu_continue.anchor.setTo(.5)
             menu.add(menu_continue)
@@ -50,7 +50,10 @@ let menuState = {
         game.state.start('game')
     },
     continue: function(){
-
+        game.memory.current_level = parseInt(localStorage.getItem('plat_gems.current_level') || '0')
+        game.memory.score = parseInt(localStorage.getItem('plat_gems.score') || '0')
+        game.memory.history = []
+        game.state.start('game')
     },
     help: function(){
 

@@ -104,7 +104,7 @@ var gameState = {
         for (var j = 0; j < ls.length; j++)
             this.removeGem(this.searchGem(ls[j].r, ls[j].c));
         // update gem
-        var moves = this.grid.update();
+        var moves = this.grid.update().reverse();
         var ltime = 100;
         for (var i = 0; i < moves.length; i++) {
             var time = this.moveGem(moves[i].fr, moves[i].fc, moves[i].tr, moves[i].tc);
@@ -112,6 +112,7 @@ var gameState = {
                 ltime = time;
             }
         }
+        this.updateGridPos();
         setTimeout(function () {
             _this.moving = false;
             if (_this.grid.count == 0) {
@@ -159,6 +160,8 @@ var gameState = {
     nextLevel: function () {
         game.memory.score = this.score;
         game.memory.current_level++;
+        localStorage.setItem('plat_gems.current_level', game.memory.current_level);
+        localStorage.setItem('plat_gems.score', game.memory.score);
         if (game.memory.current_level < game.cache.getJSON('levels').length) {
             game.state.start('game');
             return;
