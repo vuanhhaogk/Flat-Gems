@@ -10,6 +10,8 @@ function Grid(w, h, r, o){
     this.width = w || 10
     this.height = h || 10
 
+    this.count = 0
+
     if (o){
         if (o === true){
             mode = 1
@@ -27,9 +29,12 @@ function Grid(w, h, r, o){
             switch (mode){
                 case 1:
                     this.grid[i][j] = this.range[Math.floor(Math.random() * this.range.length)]
+                    this.count++
                     break;
                 case 2:
-                    this.grid[i][j] = data[i][j]
+                    this.grid[i][j] = data[i] ? data[i][j] || null : null
+                    if (this.grid[i][j])
+                        this.count++
                     break
                 default:
                     this.grid[i][j] = null
@@ -117,6 +122,7 @@ Grid.prototype.detect = function(r, c){
 }
 
 Grid.prototype.kill = function(ls){
+    this.count -= ls.length
     for (let item of ls){
         this.grid[item.r][item.c] = null
     }
@@ -182,6 +188,10 @@ Grid.prototype.update = function(){
         }
 
     return rel
+}
+
+Grid.prototype.get = function(r, c){
+    return this.grid[r][c]
 }
 
 return Grid

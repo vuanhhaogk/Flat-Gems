@@ -2,6 +2,9 @@ var gameState = {
     preload: function () {
     },
     create: function () {
+        // load level
+        var levels = game.cache.getJSON('levels');
+        var data = levels[game.memory.current_level];
         //  game size
         var game_bg = game.add.sprite(game.width / 2, game.height / 2, 'game_bg');
         game_bg.anchor.setTo(.5);
@@ -34,166 +37,118 @@ var gameState = {
         info.add(this.time_br);
         var time_crop = new Phaser.Rectangle(0, 0, this.time_br.width, this.time_br.height);
         var tw = game.add.tween(time_crop);
-        tw.to({ x: this.time_br.width }, 100000, Phaser.Easing.Linear.None, true);
+        tw.to({ x: this.time_br.width }, data.time, Phaser.Easing.Linear.None, true);
         this.time_br.crop(time_crop);
-        this.score_text = game.add.bitmapText(padding_lr + game_bg.width, -FONT_SIZE, 'zorque', '0', 36);
+        this.score = game.memory.score;
+        this.score_text = game.add.bitmapText(padding_lr + game_bg.width, -FONT_SIZE, 'zorque', "" + this.score, 36);
         this.score_text.anchor.setTo(1, 0);
-        this.score = 0;
         info.add(this.score_text);
-        // gems
-        var list = ['red', 'green', 'blue', 'yellow', 'orange'];
-        var gems = game.add.group();
-        gems.x = padding_lr + (game_bg.width - GRID_SIZE * (GEM_SIZE + GEM_PADDING)) / 2;
-        gems.y = padding_tb + (game_bg.height - GRID_SIZE * (GEM_SIZE + GEM_PADDING)) / 2;
-        this.gems = gems;
-        this.grid = [];
-        for (var i = 0; i < GRID_SIZE; i++) {
-            this.grid[i] = [];
-            for (var j = 0; j < GRID_SIZE; j++) {
-                var type = list[Math.floor(Math.random() * list.length)];
+        // map
+        this.gems = game.add.group();
+        this.gems.x = padding_lr + (game_bg.width - GRID_SIZE * (GEM_SIZE + GEM_PADDING)) / 2;
+        this.gems.y = padding_tb + (game_bg.height - GRID_SIZE * (GEM_SIZE + GEM_PADDING)) / 2;
+        this.createGrid(data.map);
+    },
+    createGrid: function (data) {
+        var width = data[0].length;
+        this.grid = new Grid(width, GRID_SIZE, [1, 2, 3, 4, 5], data);
+        this.grid.update();
+        this.rule = [];
+        var def = ['red', 'green', 'blue', 'yellow', 'orange'];
+        // random rule
+        while (def.length > 0) {
+            var p = Math.floor(Math.random() * def.length);
+            this.rule.push(def[p]);
+            def.splice(p, 1);
+        }
+        for (var i = 0; i < this.grid.height; i++) {
+            for (var j = 0; j < this.grid.width; j++) {
+                var type = this.rule[this.grid.get(i, j) - 1];
+                if (!type)
+                    continue;
                 var pos = this.getGemPos(i, j);
                 var gem = game.add.button(pos.x, pos.y, type + "_gem", this.selectGem, this);
                 gem.anchor.setTo(.5);
-                gem.row = i;
-                gem.col = j;
-                gem.gem_type = type;
-                this.grid[i][j] = gem;
-                gems.add(gem);
+                gem.r = i;
+                gem.c = j;
+                this.gems.add(gem);
             }
         }
-        this.grid_width = GRID_SIZE;
+        this.updateGridPos(true);
     },
-    getGemPos: function (row, col) {
+    getGemPos: function (r, c) {
         return {
-            x: col * (GEM_SIZE + GEM_PADDING) + GEM_SIZE / 2,
-            y: row * (GEM_SIZE + GEM_PADDING) + GEM_SIZE / 2
+            x: c * (GEM_SIZE + GEM_PADDING) + GEM_SIZE / 2,
+            y: r * (GEM_SIZE + GEM_PADDING) + GEM_SIZE / 2
         };
     },
-    searchGem: function (row, col) {
-        var gem = this.grid[row][col];
-        var type = gem.gem_type;
-        var queue = [{ row: row, col: col }];
-        var is_search = [];
-        for (var i = 0; i < GRID_SIZE; i++) {
-            is_search[i] = [];
-            for (var j = 0; j < GRID_SIZE; j++) {
-                is_search[i][j] = false;
-            }
-        }
-        var rel = [];
-        while (queue.length > 0) {
-            var item = queue.shift();
-            if (is_search[item.row][item.col])
-                continue;
-            is_search[item.row][item.col] = true;
-            var gem_1 = this.grid[item.row][item.col];
-            if (gem_1 == null || gem_1.gem_type !== type)
-                continue;
-            rel.push(item);
-            if (item.row - 1 >= 0) {
-                queue.push({ row: item.row - 1, col: item.col });
-            }
-            if (item.row + 1 < GRID_SIZE) {
-                queue.push({ row: item.row + 1, col: item.col });
-            }
-            if (item.col - 1 >= 0) {
-                queue.push({ row: item.row, col: item.col - 1 });
-            }
-            if (item.col + 1 < GRID_SIZE) {
-                queue.push({ row: item.row, col: item.col + 1 });
-            }
-        }
-        return rel;
+    updateGridPos: function (not_tween) {
+        var pivot_x = (this.grid.width - GRID_SIZE) * (GEM_SIZE + GEM_PADDING) / 2;
+        if (not_tween)
+            this.gems.pivot.x = pivot_x;
+        else
+            game.add.tween(this.gems.pivot).to({ x: pivot_x }, 100, Phaser.Easing.Linear.None, true);
     },
     selectGem: function (gem) {
         var _this = this;
         if (this.moving)
             return;
+        this.moving = true;
         // search gem
-        var gr = this.searchGem(gem.row, gem.col);
-        if (gr.length < 0)
+        var ls = this.grid.detect(gem.r, gem.c);
+        if (ls.length < 3)
             return;
         // remove gem
-        this.score += Math.pow(gr.length, 2);
-        this.score_text.text = this.score;
-        var _loop_1 = function (row, col) {
-            var item = this_1.grid[row][col];
-            this_1.grid[row][col] = null;
-            var tw = game.add.tween(item);
-            tw.to({ alpha: 0 }, 100, Phaser.Easing.Linear.None);
-            tw.onComplete.add(function () { return item.kill(); });
-            tw.start();
-            game.add.tween(item.scale).to({ x: 0, y: 0 }, 100, Phaser.Easing.Linear.None, true);
-        };
-        var this_1 = this;
-        for (var _i = 0, gr_1 = gr; _i < gr_1.length; _i++) {
-            var _a = gr_1[_i], row = _a.row, col = _a.col;
-            _loop_1(row, col);
-        }
-        // collapse gem vertical
-        var best_time = 0;
-        this.moving = true;
-        for (var i = GRID_SIZE - 1; i > 0; i--) {
-            for (var j_1 = 0; j_1 < GRID_SIZE; j_1++) {
-                if (this.grid[i][j_1] == null) {
-                    var k = i;
-                    while (k > 0 && this.grid[k - 1][j_1] == null)
-                        k--;
-                    if (k == 0)
-                        continue;
-                    var time = this.moveGem(k - 1, j_1, i, j_1);
-                    if (time > best_time)
-                        best_time = time;
-                }
+        this.updateScore(ls.length);
+        for (var j = 0; j < ls.length; j++)
+            this.removeGem(this.searchGem(ls[j].r, ls[j].c));
+        // kill gem
+        this.grid.kill(ls);
+        // update gem
+        var moves = this.grid.update();
+        console.log(ls, moves);
+        var ltime = 100;
+        for (var i = 0; i < moves.length; i++) {
+            var time = this.moveGem(moves[i].fr, moves[i].fc, moves[i].tr, moves[i].tc);
+            if (time > ltime) {
+                ltime = time;
             }
-        }
-        // collapse gem horizontal
-        var j = 0;
-        var old_grid_width = this.grid_width;
-        while (j < this.grid_width) {
-            var check = true;
-            for (var i = 0; i < GRID_SIZE; i++)
-                if (this.grid[i][j] !== null) {
-                    check = false;
-                    break;
-                }
-            if (check) {
-                for (var fr = 0; fr < GRID_SIZE; fr++) {
-                    for (var fc = j + 1; fc < this.grid_width; fc++) {
-                        var time = this.moveGem(fr, fc, fr, fc - 1);
-                        if (time > best_time)
-                            best_time = time;
-                    }
-                }
-                this.grid_width--;
-            }
-            else {
-                j++;
-            }
-        }
-        // center grid gem
-        if (best_time < 100)
-            best_time = 100;
-        if (old_grid_width !== this.grid_width) {
-            var next_pivot_x = this.gems.pivot.x - (old_grid_width - this.grid_width) * (GEM_SIZE + GEM_PADDING) / 2;
-            game.add.tween(this.gems.pivot).to({ x: next_pivot_x }, 100, Phaser.Easing.Linear.None, true);
         }
         setTimeout(function () {
             _this.moving = false;
-        }, best_time);
+            if (_this.grid.count == 0) {
+                _this.nextLevel();
+            }
+        }, ltime);
+    },
+    updateScore: function (p) {
+        this.score += p * (p - 2);
+        this.score_text.text = this.score;
+    },
+    searchGem: function (r, c) {
+        for (var i = 0; i < this.gems.children.length; i++) {
+            var gem = this.gems.children[i];
+            if (gem.r == r && gem.c == c)
+                return gem;
+        }
+        return null;
     },
     moveGem: function (fr, fc, tr, tc) {
-        if (!this.grid[fr][fc])
-            return 0;
-        this.grid[tr][tc] = this.grid[fr][fc];
-        this.grid[fr][fc] = null;
-        var item = this.grid[tr][tc];
-        item.row = tr;
-        item.col = tc;
+        var item = this.searchGem(fr, fc);
+        item.r = tr;
+        item.c = tc;
         var length = Math.sqrt(Math.pow(fr - tr, 2) + Math.pow(fc - tc, 2));
         var pos = this.getGemPos(tr, tc);
         game.add.tween(item).to(pos, 100 * length, Phaser.Easing.Linear.None, true);
         return length * 100;
+    },
+    removeGem: function (gem) {
+        console.log(gem);
+        game.add.tween(gem).to({ alpha: 0 }, 100, Phaser.Easing.Linear.None, true);
+        game.add.tween(gem.scale).to({ x: 0, y: 0 }, 100, Phaser.Easing.Linear.None, true);
+        setTimeout(function () {
+            gem.kill();
+        }, 100);
     },
     update: function () {
         this.time_br.updateCrop();
@@ -203,5 +158,15 @@ var gameState = {
     },
     replay: function () {
         game.state.start('game');
+    },
+    nextLevel: function () {
+        game.memory.score = this.score;
+        game.memory.current_level++;
+        if (game.memory.current_level < game.cache.getJSON('levels').length) {
+            game.state.start('game');
+            return;
+        }
+        // show congratulation prompt and show high score
+        console.log('Congratulation!');
     }
 };

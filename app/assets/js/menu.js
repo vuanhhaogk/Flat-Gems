@@ -36,6 +36,9 @@ var menuState = {
         game.add.tween(menu_help).to({ x: 0, alpha: 1 }, 300, Phaser.Easing.Linear.None, true);
     },
     newgame: function () {
+        game.memory.current_level = 0;
+        game.memory.score = 0;
+        game.memory.history = [];
         game.state.start('game');
     },
     "continue": function () {

@@ -21,14 +21,12 @@ let bootState = {
         game.load.image('loader_br', 'assets/images/loader_br.png')
     },
     create: function(){
+        game.memory = {}
         game.state.start('loader')
     }
 }
 
 window.onload = () => {
-    if (screen.orientation)
-        screen.orientation.lock('portrait')
-
     let md = new MobileDetect(window.navigator.userAgent)
 
     let width = GAME_WIDTH

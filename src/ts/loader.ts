@@ -28,6 +28,8 @@ let loaderState = {
 
         game.load.image('game_bg', 'assets/images/game_bg.png')
         game.load.image('menu_bg', 'assets/images/menu_bg.png')
+
+        game.load.json('levels', 'assets/data/levels.json')
     },
     create: function(){
         game.state.start('menu')

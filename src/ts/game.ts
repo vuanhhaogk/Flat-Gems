@@ -3,6 +3,10 @@ let gameState = {
 
     },
     create: function(){
+        // load level
+        let levels = game.cache.getJSON('levels')
+        let data = levels[game.memory.current_level]
+
         //  game size
         let game_bg = game.add.sprite(game.width/2, game.height/2, 'game_bg')
         game_bg.anchor.setTo(.5)
@@ -43,174 +47,128 @@ let gameState = {
         info.add(this.time_br)
         let time_crop = new Phaser.Rectangle(0, 0, this.time_br.width, this.time_br.height)
         let tw = game.add.tween(time_crop)
-        tw.to({x: this.time_br.width}, 100000, Phaser.Easing.Linear.None, true)
+        tw.to({x: this.time_br.width}, data.time, Phaser.Easing.Linear.None, true)
         this.time_br.crop(time_crop)
 
-        this.score_text = game.add.bitmapText(padding_lr + game_bg.width, -FONT_SIZE, 'zorque', '0', 36)
+        this.score = game.memory.score
+        this.score_text = game.add.bitmapText(padding_lr + game_bg.width, -FONT_SIZE, 'zorque', `${this.score}`, 36)
         this.score_text.anchor.setTo(1, 0)
-        this.score = 0
         info.add(this.score_text)
 
-        // gems
-        let list = ['red', 'green', 'blue', 'yellow', 'orange']
-        let gems = game.add.group()
-        gems.x = padding_lr + (game_bg.width - GRID_SIZE * (GEM_SIZE + GEM_PADDING))/2
-        gems.y = padding_tb + (game_bg.height - GRID_SIZE * (GEM_SIZE + GEM_PADDING))/2
-        this.gems = gems
+        // map
+        this.gems = game.add.group()
+        this.gems.x = padding_lr + (game_bg.width - GRID_SIZE * (GEM_SIZE + GEM_PADDING))/2
+        this.gems.y = padding_tb + (game_bg.height - GRID_SIZE * (GEM_SIZE + GEM_PADDING))/2
 
-        this.grid = []
-
-        for (let i = 0; i < GRID_SIZE; i++){
-            this.grid[i] = []
-            for (let j = 0; j < GRID_SIZE; j++){
-                let type = list[Math.floor(Math.random() * list.length)]
+        this.createGrid(data.map)
+    },
+    createGrid: function(data){
+        let width = data[0].length
+        this.grid = new Grid(width, GRID_SIZE, [1, 2, 3, 4, 5], data)
+        this.grid.update()
+        this.rule = []
+        let def = ['red', 'green', 'blue', 'yellow', 'orange']
+        // random rule
+        while (def.length > 0){
+            let p = Math.floor(Math.random() * def.length)
+            this.rule.push(def[p])
+            def.splice(p, 1)
+        }
+        for (let i = 0; i < this.grid.height; i++){
+            for (let j = 0; j < this.grid.width; j++){
+                let type = this.rule[this.grid.get(i, j) - 1]
+                if (!type)
+                    continue
                 let pos = this.getGemPos(i, j)
                 let gem = game.add.button(pos.x, pos.y, `${type}_gem`, this.selectGem, this)
                 gem.anchor.setTo(.5)
-                gem.row = i
-                gem.col = j
-                gem.gem_type = type
-                this.grid[i][j] = gem
-                gems.add(gem)
+                gem.r = i
+                gem.c = j
+                this.gems.add(gem)
             }
         }
-
-        this.grid_width = GRID_SIZE
+        this.updateGridPos(true)
     },
-    getGemPos: function(row, col){
+    getGemPos: function(r, c){
         return {
-            x: col * (GEM_SIZE + GEM_PADDING) + GEM_SIZE/2,
-            y: row * (GEM_SIZE + GEM_PADDING) + GEM_SIZE/2
+            x: c * (GEM_SIZE + GEM_PADDING) + GEM_SIZE/2,
+            y: r * (GEM_SIZE + GEM_PADDING) + GEM_SIZE/2
         }
     },
-    searchGem: function(row, col){
-        let gem = this.grid[row][col]
-        let type = gem.gem_type
-        let queue = [{row, col}]
-        let is_search = []
-        for (let i = 0; i < GRID_SIZE; i++){
-            is_search[i] = []
-            for (let j = 0; j < GRID_SIZE; j++){
-                is_search[i][j] = false
-            }
-        }
-        let rel = []
-
-        while (queue.length > 0){
-            let item = queue.shift()
-
-            if (is_search[item.row][item.col])
-                continue
-
-            is_search[item.row][item.col] = true
-
-            let gem = this.grid[item.row][item.col]
-            if (gem == null || gem.gem_type !== type)
-                continue
-
-            rel.push(item)
-
-            if (item.row - 1 >= 0){
-                queue.push({row: item.row - 1, col: item.col})
-            }
-            if (item.row + 1 < GRID_SIZE){
-                queue.push({row: item.row + 1, col: item.col})
-            }
-            if (item.col - 1 >= 0){
-                queue.push({row: item.row, col: item.col - 1})
-            }
-            if (item.col + 1 < GRID_SIZE){
-                queue.push({row: item.row, col: item.col + 1})
-            }
-        }
-        return rel
+    updateGridPos: function(not_tween){
+        let pivot_x = (this.grid.width - GRID_SIZE) * (GEM_SIZE + GEM_PADDING)/2
+        if (not_tween)
+            this.gems.pivot.x = pivot_x
+        else
+            game.add.tween(this.gems.pivot).to({x: pivot_x}, 100, Phaser.Easing.Linear.None, true)
     },
     selectGem: function(gem){
         if (this.moving)
             return
+
+        this.moving = true
+
         // search gem
-        let gr = this.searchGem(gem.row, gem.col)
-        if (gr.length < 0) // default is 3
+        let ls = this.grid.detect(gem.r, gem.c)
+        if (ls.length < 3) // default is 3
             return
 
         // remove gem
-        this.score += Math.pow(gr.length, 2)
-        this.score_text.text = this.score
-        for (let {row, col} of gr){
-            let item = this.grid[row][col]
-            this.grid[row][col] = null
-            let tw = game.add.tween(item)
-            tw.to({alpha: 0}, 100, Phaser.Easing.Linear.None)
-            tw.onComplete.add(() => item.kill())
-            tw.start()
-            game.add.tween(item.scale).to({x: 0, y: 0}, 100, Phaser.Easing.Linear.None, true)
-        }
+        this.updateScore(ls.length)
 
-        // collapse gem vertical
-        let best_time = 0
-        this.moving = true
-        for (let i = GRID_SIZE - 1; i > 0; i--){
-            for (let j = 0; j < GRID_SIZE; j++){
-                if (this.grid[i][j] == null){
-                    let k = i
-                    while (k > 0 && this.grid[k - 1][j] == null) k--
-                    if (k == 0)
-                        continue
-                    let time = this.moveGem(k - 1, j, i, j)
-                    if (time > best_time)
-                        best_time = time
-                }
+        for (let j = 0; j < ls.length; j++)
+            this.removeGem(this.searchGem(ls[j].r, ls[j].c))
+
+        // kill gem
+        this.grid.kill(ls)
+
+        // update gem
+        let moves = this.grid.update()
+        console.log(ls, moves)
+        let ltime = 100
+        for (let i = 0; i < moves.length; i++){
+            let time = this.moveGem(moves[i].fr, moves[i].fc, moves[i].tr, moves[i].tc)
+            if (time > ltime){
+                ltime = time
             }
         }
 
-        // collapse gem horizontal
-        let j = 0
-        let old_grid_width = this.grid_width
-        while (j < this.grid_width){
-            let check = true
-            for (let i = 0; i < GRID_SIZE; i++)
-                if (this.grid[i][j] !== null){
-                    check = false
-                    break
-                }
-            if (check){
-                for (let fr = 0; fr < GRID_SIZE; fr++){
-                    for (let fc = j + 1; fc < this.grid_width; fc++){
-                        let time = this.moveGem(fr, fc, fr, fc - 1)
-                        if (time > best_time)
-                            best_time = time
-                    }
-                }
-                this.grid_width--
-            } else {
-                j++
-            }
-        }
-
-        // center grid gem
-        if (best_time < 100)
-            best_time = 100
-        if (old_grid_width !== this.grid_width){
-            let next_pivot_x = this.gems.pivot.x - (old_grid_width - this.grid_width) * (GEM_SIZE + GEM_PADDING)/2
-            game.add.tween(this.gems.pivot).to({x: next_pivot_x}, 100, Phaser.Easing.Linear.None, true)
-        }
         setTimeout(() => {
             this.moving = false
-        }, best_time)
+            if (this.grid.count == 0){
+                this.nextLevel()
+            }
+        }, ltime)
+    },
+    updateScore: function(p){
+        this.score += p * (p - 2)
+        this.score_text.text = this.score
+    },
+    searchGem: function(r, c){
+        for (let i = 0; i < this.gems.children.length; i++){
+            let gem = this.gems.children[i]
+            if (gem.r == r && gem.c == c)
+                return gem
+        }
+        return null
     },
     moveGem: function(fr, fc, tr, tc){
-        if (!this.grid[fr][fc])
-            return 0
-        this.grid[tr][tc] = this.grid[fr][fc]
-        this.grid[fr][fc] = null
-        let item = this.grid[tr][tc]
-        item.row = tr
-        item.col = tc
+        let item = this.searchGem(fr, fc)
+        item.r = tr
+        item.c = tc
 
         let length = Math.sqrt(Math.pow(fr - tr, 2) + Math.pow(fc - tc, 2))
         let pos = this.getGemPos(tr, tc)
         game.add.tween(item).to(pos, 100 * length, Phaser.Easing.Linear.None, true)
         return length * 100
+    },
+    removeGem: function(gem){
+        console.log(gem)
+        game.add.tween(gem).to({alpha: 0}, 100, Phaser.Easing.Linear.None, true)
+        game.add.tween(gem.scale).to({x: 0, y: 0}, 100, Phaser.Easing.Linear.None, true)
+        setTimeout(() => {
+            gem.kill()
+        }, 100)
     },
     update: function(){
         this.time_br.updateCrop()
@@ -220,5 +178,15 @@ let gameState = {
     },
     replay: function(){
         game.state.start('game')
+    },
+    nextLevel: function(){
+        game.memory.score = this.score
+        game.memory.current_level++
+        if (game.memory.current_level < game.cache.getJSON('levels').length){
+            game.state.start('game')
+            return
+        }
+        // show congratulation prompt and show high score
+        console.log('Congratulation!')
     }
 }

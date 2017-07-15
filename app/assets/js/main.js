@@ -17,12 +17,11 @@ var bootState = {
         game.load.image('loader_br', 'assets/images/loader_br.png');
     },
     create: function () {
+        game.memory = {};
         game.state.start('loader');
     }
 };
 window.onload = function () {
-    if (screen.orientation)
-        screen.orientation.lock('portrait');
     var md = new MobileDetect(window.navigator.userAgent);
     var width = GAME_WIDTH;
     var height;

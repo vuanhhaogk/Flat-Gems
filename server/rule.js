@@ -6,6 +6,7 @@ var Grid = (function () {
         this.range = r || [1, 2, 3, 4, 5];
         this.width = w || 10;
         this.height = h || 10;
+        this.count = 0;
         if (o) {
             if (o === true) {
                 mode = 1;
@@ -24,9 +25,12 @@ var Grid = (function () {
                 switch (mode) {
                     case 1:
                         this.grid[i][j] = this.range[Math.floor(Math.random() * this.range.length)];
+                        this.count++;
                         break;
                     case 2:
-                        this.grid[i][j] = data[i][j];
+                        this.grid[i][j] = data[i] ? data[i][j] || null : null;
+                        if (this.grid[i][j])
+                            this.count++;
                         break;
                     default:
                         this.grid[i][j] = null;
@@ -102,6 +106,7 @@ var Grid = (function () {
         return rel;
     };
     Grid.prototype.kill = function (ls) {
+        this.count -= ls.length;
         for (var _i = 0, ls_1 = ls; _i < ls_1.length; _i++) {
             var item = ls_1[_i];
             this.grid[item.r][item.c] = null;
@@ -165,6 +170,9 @@ var Grid = (function () {
                 }
             }
         return rel;
+    };
+    Grid.prototype.get = function (r, c) {
+        return this.grid[r][c];
     };
     return Grid;
 })();
