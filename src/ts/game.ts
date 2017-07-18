@@ -34,8 +34,8 @@ let gameState = {
         let info = game.add.group()
         info.y = padding_tb/2 - FONT_SIZE/4 * 3
 
-        info.add(game.add.bitmapText(padding_lr , -FONT_SIZE, 'zorque', 'Score', 36))
-        info.add(game.add.bitmapText(padding_lr, FONT_SIZE, 'zorque', 'Time', 36))
+        info.add(game.add.bitmapText(padding_lr , -FONT_SIZE, 'zorque', 'Score', FONT_SIZE))
+        info.add(game.add.bitmapText(padding_lr, FONT_SIZE, 'zorque', 'Time', FONT_SIZE))
 
         let time_bg = game.add.sprite(padding_lr + game_bg.width, FONT_SIZE, 'loader_bg')
         time_bg.anchor.setTo(1, 0)
@@ -51,7 +51,7 @@ let gameState = {
         this.time_br.crop(time_crop)
 
         this.score = game.memory.score
-        this.score_text = game.add.bitmapText(padding_lr + game_bg.width, -FONT_SIZE, 'zorque', `${this.score}`, 36)
+        this.score_text = game.add.bitmapText(padding_lr + game_bg.width, -FONT_SIZE, 'zorque', `${this.score}`, FONT_SIZE)
         this.score_text.anchor.setTo(1, 0)
         info.add(this.score_text)
 
@@ -59,8 +59,40 @@ let gameState = {
         this.gems = game.add.group()
         this.gems.x = padding_lr + (game_bg.width - GRID_SIZE * (GEM_SIZE + GEM_PADDING))/2
         this.gems.y = padding_tb + (game_bg.height - GRID_SIZE * (GEM_SIZE + GEM_PADDING))/2
+        this.gems.visible = false
 
         this.createGrid(data.map)
+
+        // gray gem grid
+        this.gray_grid = game.add.group()
+        this.gray_grid.x = this.gems.x
+        this.gray_grid.y = this.gems.y
+        for (let i = 0; i < GRID_SIZE; i++)
+            for (let j = 0; j < GRID_SIZE; j++){
+                let p = this.getGemPos(i, j)
+                let gem = this.gray_grid.create(p.x, p.y, 'gray_gem')
+                gem.anchor.setTo(.5)
+            }
+
+        // level notice
+        let level_prompt = game.add.group()
+        level_prompt.create(0, 0, 'next_level_bg').anchor.setTo(.5)
+        let level_text = game.add.bitmapText(0, -FONT_SIZE/3, 'zorque_pink', `Level ${game.memory.current_level + 1}`, FONT_SIZE)
+        level_text.anchor.setTo(.5)
+        level_prompt.add(level_text)
+        level_prompt.x = game.width/2
+        level_prompt.y = game.height/2
+        let ltween = game.add.tween(level_prompt.scale)
+        ltween.to({x: 1.5, y: 0}, 100)
+        ltween.onComplete.add(() => {
+            let tw = game.add.tween(this.gray_grid)
+            tw.to({alpha: 0}, 100)
+            tw.start(0)
+            this.gems.visible = true
+        })
+        setTimeout(() => {
+            ltween.start()
+        }, 1000)
     },
     createGrid: function(data){
         let width = data[0].length
@@ -128,7 +160,9 @@ let gameState = {
                 ltime = time
             }
         }
-        this.updateGridPos()
+
+        if (this.grid.count > 0)
+            this.updateGridPos()
 
         setTimeout(() => {
             this.moving = false
