@@ -11,9 +11,10 @@ var loaderState = {
         game.load.image('title', 'assets/images/title.png');
         game.load.image('menu_newgame', 'assets/images/menu_newgame.png');
         game.load.image('menu_continue', 'assets/images/menu_continue.png');
-        game.load.image('menu_help', 'assets/images/menu_help.png');
+        game.load.image('menu_about', 'assets/images/menu_about.png');
         game.load.image('menu_button', 'assets/images/menu_button.png');
         game.load.image('replay_button', 'assets/images/replay_button.png');
+        game.load.image('close_button', 'assets/images/close_button.png');
         game.load.spritesheet('pp_button', 'assets/images/play_pause_button.png', 80, 80);
         game.load.image('yes_button', 'assets/images/yes_button.png');
         game.load.image('no_button', 'assets/images/no_button.png');

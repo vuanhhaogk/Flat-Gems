@@ -18,11 +18,11 @@ var menuState = {
         menu_newgame.x = -game.width / 4;
         menu_newgame.alpha = 0;
         game.add.tween(menu_newgame).to({ x: 0, alpha: 1 }, 300, Phaser.Easing.Linear.None, true);
-        var menu_help = game.add.button(0, FONT_SIZE * 2, 'menu_help', this.help, this);
-        menu_help.anchor.setTo(.5);
-        menu.add(menu_help);
-        menu_help.x = game.width / 4;
-        menu_help.alpha = 0;
+        var menu_about = game.add.button(0, FONT_SIZE * 2, 'menu_about', this.about, this);
+        menu_about.anchor.setTo(.5);
+        menu.add(menu_about);
+        menu_about.x = game.width / 4;
+        menu_about.alpha = 0;
         if (localStorage.getItem('plat_gems.current_level')) {
             var menu_continue = game.add.button(0, FONT_SIZE * 2, 'menu_continue', this["continue"], this);
             menu_continue.anchor.setTo(.5);
@@ -30,23 +30,61 @@ var menuState = {
             menu_continue.x = game.width / 4;
             menu_continue.alpha = 0;
             game.add.tween(menu_continue).to({ x: 0, alpha: 1 }, 300, Phaser.Easing.Linear.None, true);
-            menu_help.y = FONT_SIZE * 4;
-            menu_help.x = -game.width / 4;
+            menu_about.y = FONT_SIZE * 4;
+            menu_about.x = -game.width / 4;
         }
-        game.add.tween(menu_help).to({ x: 0, alpha: 1 }, 300, Phaser.Easing.Linear.None, true);
+        game.add.tween(menu_about).to({ x: 0, alpha: 1 }, 300, Phaser.Easing.Linear.None, true);
     },
     newgame: function () {
+        if (this.popup_showed)
+            return;
         game.memory.current_level = 0;
         game.memory.score = 0;
         game.memory.history = [];
         game.state.start('game');
     },
     "continue": function () {
+        if (this.popup_showed)
+            return;
         game.memory.current_level = parseInt(localStorage.getItem('plat_gems.current_level') || '0');
         game.memory.score = parseInt(localStorage.getItem('plat_gems.score') || '0');
         game.memory.history = [];
         game.state.start('game');
     },
-    help: function () {
+    about: function () {
+        var _this = this;
+        if (this.popup_showed)
+            return;
+        var gr = game.add.group();
+        gr.x = game.width / 2;
+        gr.y = game.height / 2;
+        var s = game.add.sprite(0, 0, 'popup_bg_1');
+        s.anchor.setTo(.5);
+        gr.add(s);
+        s = game.add.sprite(0, 0, 'popup_bg_2');
+        s.anchor.setTo(.5);
+        gr.add(s);
+        var text = ['About', '', 'Vu Anh Hao', 'https://vuanhhaogk.github.io', 'Copyright 2017'];
+        for (var i = 0; i < text.length; i++) {
+            var t = text[i];
+            var s_1 = game.add.bitmapText(0, i * FONT_SIZE - text.length * FONT_SIZE / 2 - FONT_SIZE * 1.2, 'zorque', t, FONT_SIZE);
+            s_1.anchor.setTo(.5);
+            gr.add(s_1);
+        }
+        var bt = game.add.button(0, (text.length + 1) * FONT_SIZE / 2, 'close_button', function () {
+            if (!_this.popup_showed)
+                return;
+            _this.popup_showed = false;
+            game.add.tween(gr).to({ alpha: 0 }, 100, Phaser.Easing.Linear.None, true);
+            game.add.tween(gr.scale).to({ x: 0.8, y: 0.8 }, 100, Phaser.Easing.Linear.None, true);
+            setTimeout(function () { return gr.destroy(); }, 100);
+        }, this);
+        bt.anchor.setTo(.5);
+        gr.add(bt);
+        this.popup_showed = true;
+        gr.alpha = 0;
+        gr.scale.setTo(.8);
+        game.add.tween(gr).to({ alpha: 1 }, 100, Phaser.Easing.Linear.None, true);
+        game.add.tween(gr.scale).to({ x: 1, y: 1 }, 100, Phaser.Easing.Linear.None, true);
     }
 };
